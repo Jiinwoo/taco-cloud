@@ -5,8 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import me.jung.tacocloud.Order;
 import me.jung.tacocloud.User;
 import me.jung.tacocloud.data.OrderRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
@@ -21,6 +24,7 @@ import javax.validation.Valid;
 public class OrderController {
 
     private final OrderRepository orderRepository;
+    private final OrderProps props;
 
     @GetMapping("/current")
     public String orderForm(@AuthenticationPrincipal User user, @ModelAttribute Order order) {
@@ -56,5 +60,16 @@ public class OrderController {
 
         log.info("Order submitted: " + order);
         return "redirect:/";
+    }
+    @GetMapping
+    public String ordersForUser(
+            @AuthenticationPrincipal User user, Model model) {
+
+        Pageable pageable = PageRequest.of(0, props.getPageSize());
+
+        model.addAttribute("orders",
+                orderRepository.findByUserOrderByPlacedAtDesc(user, pageable));
+
+        return "orderList";
     }
 }
