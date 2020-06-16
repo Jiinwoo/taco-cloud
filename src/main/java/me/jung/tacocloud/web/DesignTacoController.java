@@ -6,8 +6,10 @@ import me.jung.tacocloud.Ingredient;
 import me.jung.tacocloud.Ingredient.Type;
 import me.jung.tacocloud.Order;
 import me.jung.tacocloud.Taco;
+import me.jung.tacocloud.User;
 import me.jung.tacocloud.data.IngredientRepository;
 import me.jung.tacocloud.data.TacoRepository;
+import me.jung.tacocloud.data.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,11 +18,13 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @Slf4j
 @Controller
 @RequestMapping("/design")
@@ -28,8 +32,8 @@ import java.util.stream.Collectors;
 public class DesignTacoController {
 
     private final IngredientRepository ingredientRepo;
-
-    private TacoRepository tacoRepo;
+    private final UserRepository userRepository;
+    private final TacoRepository tacoRepo;
 
     @ModelAttribute
     public void addIngredientToModel(Model model){
@@ -43,15 +47,11 @@ public class DesignTacoController {
         }
     }
 
-    @Autowired
-    public DesignTacoController(
-            IngredientRepository ingredientRepo, TacoRepository tacoRepo) {
-        this.ingredientRepo = ingredientRepo;
-        this.tacoRepo = tacoRepo;
-    }
-
     @GetMapping
-    public String showDesignForm(Model model) {
+    public String showDesignForm(Model model, Principal principal) {
+        String username= principal.getName();
+        User user = userRepository.findByUsername(username);
+        model.addAttribute("user",user);
         model.addAttribute("taco", new Taco());
         return "design";
     }

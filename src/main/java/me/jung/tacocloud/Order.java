@@ -57,4 +57,7 @@ public class Order implements Serializable {
     void placedAt () {
         this.placedAt = LocalDateTime.now();
     }
+
+    @ManyToOne
+    private User user;
 }

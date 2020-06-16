@@ -3,13 +3,12 @@ package me.jung.tacocloud.web;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.jung.tacocloud.Order;
+import me.jung.tacocloud.User;
 import me.jung.tacocloud.data.OrderRepository;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 
 import javax.validation.Valid;
@@ -24,15 +23,34 @@ public class OrderController {
     private final OrderRepository orderRepository;
 
     @GetMapping("/current")
-    public String orderForm(){
+    public String orderForm(@AuthenticationPrincipal User user, @ModelAttribute Order order) {
+        if (order.getDeliveryName() == null) {
+            order.setDeliveryName(user.getFullname());
+        }
+        if (order.getDeliveryStreet() == null) {
+            order.setDeliveryStreet(user.getStreet());
+        }
+        if (order.getDeliveryCity() == null) {
+            order.setDeliveryCity(user.getCity());
+        }
+        if (order.getDeliveryState() == null) {
+            order.setDeliveryState(user.getState());
+        }
+        if (order.getDeliveryZip() == null) {
+            order.setDeliveryZip(user.getZip());
+        }
         return "orderForm";
+
     }
 
     @PostMapping
-    public String processOrder(@Valid Order order, SessionStatus sessionStatus, BindingResult bindingResult){
+    public String processOrder(@Valid Order order, SessionStatus sessionStatus,
+                               BindingResult bindingResult,
+                               @AuthenticationPrincipal User user){
         if(bindingResult.hasErrors()){
             return "orderForm";
         }
+        order.setUser(user);
         orderRepository.save(order);
         sessionStatus.setComplete();
 
